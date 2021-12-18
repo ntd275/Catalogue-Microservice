@@ -1,49 +1,224 @@
-const knex = require('./database')
-
-exports.getAccountList = async (page, perpage) => {
-    return knex.select('accountId', 'accountName', 'role', 'userCode').table('Accounts').paginate({ perPage: perpage, currentPage: page, isLengthAware: true })
-}
-//Use for auth login
-exports.getAccountByUsername = async (accountName) => {
-    return knex('Accounts').where('accountName', accountName).first()
-}
-//Use for account get accounts
-exports.getAccountsByUsername = async (accountName) => {
-    return knex('Accounts').where('accountName', 'like', accountName)
-}
-
-exports.getAccount = async function (accountId) {
-    return knex('Accounts').where('accountId', accountId).first()
-}
-
-exports.createAccount = async function (account) {
-    return knex("Accounts").insert({
-        role: account.role,
-        accountName: account.accountName,
-        password: account.password,
-        userCode: account.userCode
-    });
-}
-
-exports.editAccount = async function (id, data) {
-    return knex('Accounts')
-        .where('accountId', id)
-        .update({
-            role: data.role,
-            accountName: data.accountName,
-            password: data.password,
-            userCode: data.userCode
+const Catalog = require('../models/catalog')
+const uuid = require('uuid');
+exports.getCatalog = async function (req, res) {
+    try{
+        let page = parseInt(req.query.page, 10) || 1
+        let perpage = parseInt(req.query.size) || 1000
+        let tags = req.query.tags?.split(',') || []
+        let result = await Catalog.getCatalog(page,perpage,tags);
+        res.json(await Promise.all(result.data.map(async(e)=>{
+            return {
+                id: e.sock_id,
+                name: e.name,
+                description: e.description,
+                imageUrl: [e.image_url_1,e.image_url_2],
+                price: e.price,
+                count: e.count,
+                tag: (await Catalog.getTagOfCatalog(e.sock_id)).map(t => t.name)
+            }
+        })));
+    } catch(err){
+        console.log(err)
+        res.status(500).json({
+            success: false,
+            err,
         })
+    }
 }
 
-exports.updatePassword = async function (accountId, newPassword) {
-    return knex('Accounts').where('accountId', accountId).update('password', newPassword)
+exports.getCatalogSize = async function (req, res) {
+    try{
+        let tags = req.query.tags?.split(',') || []
+        let result = await Catalog.getCatalogSize(tags);
+        res.json({
+            size: result[0]['count(*)']
+        });
+    } catch(err){
+        console.log(err)
+        res.status(500).json({
+            success: false,
+            err,
+        })
+    }
 }
 
-exports.deleteAccount = async function (accountId) {
-    return knex('Accounts').where('accountId', accountId).del()
+exports.getCatalogById = async function (req, res) {
+    try{
+        let id = req.params.id;
+        let e = await Catalog.getCatalogById(id);
+        let tags = await Catalog.getTagOfCatalog(id);
+        res.json({
+            id: e.sock_id,
+            name: e.name,
+            description: e.description,
+            imageUrl: [e.image_url_1,e.image_url_2],
+            price: e.price,
+            count: e.count,
+            tag: tags.map(t => t.name)
+        });
+    } catch(err){
+        console.log(err)
+        res.status(500).json({
+            success: false,
+            err,
+        })
+    }
 }
 
-exports.searchByAccountName = async function(accountName, page, perpage) {
-    return knex('Accounts').where('accountName', 'like', `%${accountName}%`).paginate({ perPage: perpage, currentPage: page, isLengthAware: true })
+exports.getAllTag = async function (req, res) {
+    try{
+        let result = await Catalog.getAllTag();
+        res.json({
+            tag: result.map(e=>e.name),
+            err: null,
+        });
+    } catch(err){
+        console.log(err)
+        res.status(500).json({
+            success: false,
+            err,
+        })
+    }
+}
+
+exports.createCatalog = async function (req, res) {
+    try{
+        req.body.id = uuid.v4();
+        let result = await Catalog.createCatalog(req.body)
+        res.json({
+            success: true,
+            result
+        });
+    } catch(err){
+        console.log(err)
+        res.status(500).json({
+            success: false,
+            err,
+        })
+    }
+}
+
+exports.editCatalog = async function (req, res) {
+    try{
+        let result = await Catalog.editCatalog(req.body,req.params.id)
+        res.json({
+            success: true,
+            result
+        });
+    } catch(err){
+        console.log(err)
+        res.status(500).json({
+            success: false,
+            err,
+        })
+    }
+}
+
+exports.deleteCatalog = async function (req, res) {
+    try{
+        let result = await Catalog.deleteCatalog(req.params.id)
+        res.json({
+            success: true,
+            result
+        });
+    } catch(err){
+        console.log(err)
+        res.status(500).json({
+            success: false,
+            err,
+        })
+    }
+}
+
+exports.getAllTagDetail =  async function (req, res) {
+    try{
+        let result = await Catalog.getAllTag();
+        res.json(result);
+    } catch(err){
+        console.log(err)
+        res.status(500).json({
+            success: false,
+            err,
+        })
+    }
+}
+
+exports.createTag = async function (req, res) {
+    try{
+        let result = await Catalog.createTag(req.body)
+        res.json({
+            success: true,
+            result
+        });
+    } catch(err){
+        console.log(err)
+        res.status(500).json({
+            success: false,
+            err,
+        })
+    }
+}
+
+exports.editTag = async function (req, res) {
+    try{
+        let result = await Catalog.editTag(req.body,req.params.id)
+        res.json({
+            success: true,
+            result
+        });
+    } catch(err){
+        console.log(err)
+        res.status(500).json({
+            success: false,
+            err,
+        })
+    }
+}
+
+exports.deleteTag = async function (req, res) {
+    try{
+        let result = await Catalog.deleteTag(req.params.id)
+        res.json({
+            success: true,
+            result
+        });
+    } catch(err){
+        console.log(err)
+        res.status(500).json({
+            success: false,
+            err,
+        })
+    }
+}
+
+exports.createTagCatalog = async function (req, res) {
+    try{
+        let result = await Catalog.addTagCatalog(req.body.tagId,req.body.catalogId);
+        res.json({
+            success: true,
+            result
+        });
+    } catch(err){
+        console.log(err)
+        res.status(500).json({
+            success: false,
+            err,
+        })
+    }
+}
+
+exports.deleteTagCatalog = async function (req, res) {
+    try{
+        let result = await Catalog.deleteTagCatalog(req.body.tagId,req.body.catalogId)
+        res.json({
+            success: true,
+            result
+        });
+    } catch(err){
+        console.log(err)
+        res.status(500).json({
+            success: false,
+            err,
+        })
+    }
 }

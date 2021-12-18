@@ -1,11 +1,12 @@
 const knex = require('knex')({
     client: 'mysql',
     connection: {
-        host: "catalogue-db",
+        host: "13.76.190.101",
         user: "catalogue_user",
         password: 'default_password',
         database: 'socksdb',
-        timezone: "+00:00"
+        timezone: "+00:00",
+        port: 3306,
     },
     acquireConnectionTimeout: 30000
 });
