@@ -1,0 +1,49 @@
+const knex = require('./database')
+
+exports.getAccountList = async (page, perpage) => {
+    return knex.select('accountId', 'accountName', 'role', 'userCode').table('Accounts').paginate({ perPage: perpage, currentPage: page, isLengthAware: true })
+}
+//Use for auth login
+exports.getAccountByUsername = async (accountName) => {
+    return knex('Accounts').where('accountName', accountName).first()
+}
+//Use for account get accounts
+exports.getAccountsByUsername = async (accountName) => {
+    return knex('Accounts').where('accountName', 'like', accountName)
+}
+
+exports.getAccount = async function (accountId) {
+    return knex('Accounts').where('accountId', accountId).first()
+}
+
+exports.createAccount = async function (account) {
+    return knex("Accounts").insert({
+        role: account.role,
+        accountName: account.accountName,
+        password: account.password,
+        userCode: account.userCode
+    });
+}
+
+exports.editAccount = async function (id, data) {
+    return knex('Accounts')
+        .where('accountId', id)
+        .update({
+            role: data.role,
+            accountName: data.accountName,
+            password: data.password,
+            userCode: data.userCode
+        })
+}
+
+exports.updatePassword = async function (accountId, newPassword) {
+    return knex('Accounts').where('accountId', accountId).update('password', newPassword)
+}
+
+exports.deleteAccount = async function (accountId) {
+    return knex('Accounts').where('accountId', accountId).del()
+}
+
+exports.searchByAccountName = async function(accountName, page, perpage) {
+    return knex('Accounts').where('accountName', 'like', `%${accountName}%`).paginate({ perPage: perpage, currentPage: page, isLengthAware: true })
+}
