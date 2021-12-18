@@ -2,12 +2,10 @@ FROM node:10-alpine
 
 WORKDIR /home
 
-COPY package*.json ./
+COPY . .
 
 RUN npm install
 
-COPY . .
-
-EXPOSE 3000
+EXPOSE 80
 
 CMD [ "node", "server.js" ]
