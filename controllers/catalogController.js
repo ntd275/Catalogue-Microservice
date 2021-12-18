@@ -4,7 +4,7 @@ exports.getCatalog = async function (req, res) {
     try{
         let page = parseInt(req.query.page, 10) || 1
         let perpage = parseInt(req.query.size) || 1000
-        let tags = req.query.tags?.split(',') || []
+        let tags = req.query.tags? req.query.tags.split(',') : []
         let result = await Catalog.getCatalog(page,perpage,tags);
         res.json(await Promise.all(result.data.map(async(e)=>{
             return {
@@ -28,7 +28,7 @@ exports.getCatalog = async function (req, res) {
 
 exports.getCatalogSize = async function (req, res) {
     try{
-        let tags = req.query.tags?.split(',') || []
+        let tags = req.query.tags?req.query.tags.split(',') : []
         let result = await Catalog.getCatalogSize(tags);
         res.json({
             size: result[0]['count(*)']
