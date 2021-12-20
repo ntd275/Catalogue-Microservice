@@ -1,7 +1,7 @@
 const knex = require('knex')({
     client: 'mysql',
     connection: {
-        host: "catalogue_db",
+        host: "catalogue-db",
         user: "catalogue_user",
         password: 'default_password',
         database: 'socksdb',
