@@ -1,5 +1,4 @@
 const catalogController = require('../controllers/catalogController')
-const crypto = require('crypto')
 module.exports = function (app) {
   app.get('/catalogue',catalogController.getCatalog)
   app.get('/catalogue/size',catalogController.getCatalogSize)
@@ -14,6 +13,7 @@ module.exports = function (app) {
   app.delete('/tags/:id',catalogController.deleteTag)
   app.post('/tag-catalogue',catalogController.createTagCatalog)
   app.delete('/tag-catalogue',catalogController.deleteTagCatalog)
+  app.post('/catalogue/upload-image',catalogController.uploadImage)
 
   app.use(function (req, res) {
     res.status(404).json({

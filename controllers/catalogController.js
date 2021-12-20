@@ -30,8 +30,9 @@ exports.getCatalogSize = async function (req, res) {
     try{
         let tags = req.query.tags?req.query.tags.split(',') : []
         let result = await Catalog.getCatalogSize(tags);
+        console.log(result);
         res.json({
-            size: result[0]['count(*)']
+            size: result.length?[0]['count(*)']:0
         });
     } catch(err){
         console.log(err)
@@ -69,7 +70,7 @@ exports.getAllTag = async function (req, res) {
     try{
         let result = await Catalog.getAllTag();
         res.json({
-            tag: result.map(e=>e.name),
+            tags: result.map(e=>e.name),
             err: null,
         });
     } catch(err){
@@ -84,6 +85,16 @@ exports.getAllTag = async function (req, res) {
 exports.createCatalog = async function (req, res) {
     try{
         req.body.id = uuid.v4();
+
+        if(req.body.images){
+            let fileName1 = uuid.v4() + '.jpg';
+            let data1 = new Buffer(req.body.images[0],'base64');
+            let fileName2 = uuid.v4() + '.jpg';
+            let data2 = new Buffer(req.body.images[1],'base64');
+            fs.writeFileSync("./public/"+fileName1,data1);
+            fs.writeFileSync("./public/"+fileName2,data2);
+            req.body.imageUrl = ['/catalogue/images/' + fileName1,'/catalogue/images/' + fileName2]
+        }
         let result = await Catalog.createCatalog(req.body)
         res.json({
             success: true,
@@ -100,6 +111,15 @@ exports.createCatalog = async function (req, res) {
 
 exports.editCatalog = async function (req, res) {
     try{
+        if(req.body.image){
+            let fileName1 = uuid.v4() + '.jpg';
+            let data1 = new Buffer(req.body.images[0],'base64');
+            let fileName2 = uuid.v4() + '.jpg';
+            let data2 = new Buffer(req.body.images[1],'base64');
+            fs.writeFileSync("./public/"+fileName1,data1);
+            fs.writeFileSync("./public/"+fileName2,data2);
+            req.body.imageUrl = ['/catalogue/images/' + fileName1,'/catalogue/images/' + fileName2]
+        }
         let result = await Catalog.editCatalog(req.body,req.params.id)
         res.json({
             success: true,
@@ -213,6 +233,26 @@ exports.deleteTagCatalog = async function (req, res) {
         res.json({
             success: true,
             result
+        });
+    } catch(err){
+        console.log(err)
+        res.status(500).json({
+            success: false,
+            err,
+        })
+    }
+}
+
+const fs = require('fs');
+
+exports.uploadImage = async function (req, res) {
+    try{
+        let fileName = uuid.v4() + '.jpg';
+        let data = new Buffer(req.body.data,'base64');
+        fs.writeFileSync("./public/"+fileName,data);
+        res.json({
+            success: true,
+            fileName,
         });
     } catch(err){
         console.log(err)
