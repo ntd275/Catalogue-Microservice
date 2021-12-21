@@ -97,7 +97,7 @@ exports.createCatalog = async function (req, res) {
         let result = await Catalog.createCatalog(req.body)
         res.json({
             success: true,
-            result
+            id: req.body.id
         });
     } catch(err){
         console.log(err)

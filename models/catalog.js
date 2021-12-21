@@ -48,9 +48,8 @@ exports.getTagOfCatalog = (id) => {
     .select('tag.name')
 }
 
-exports.createCatalog = async(catalog) =>{
+exports.createCatalog = (catalog) =>{
     return knex('sock').insert({
-        sock_id: catalog.id,
         name: catalog.name,
         description: catalog.description,
         price: catalog.price,
@@ -92,15 +91,10 @@ exports.deleteTag = async(id)=>{
 }
 
 exports.addTagCatalog = async(tagId,catalogId)=>{
-    await knex('sock_tag').where('sock_id',catalogId);
-    return Promise.all(
-        tagId.map(e => {
-            knex('sock_tag').insert({
-                tag_id: e,
-                sock_id: catalogId,
-            })
-        })
-    )
+    return knex('sock_tag').insert({
+        tag_id: tagId,
+        sock_id: catalogId,
+    })
 }
 
 exports.deleteTagCatalog = async(tagId,catalogId)=>{
