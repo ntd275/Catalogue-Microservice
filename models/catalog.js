@@ -61,14 +61,22 @@ exports.createCatalog = (catalog) =>{
 }
 
 exports.editCatalog = async(catalog, id) => {
-    return knex('sock').where('sock_id',id).update({
+    let data = {
         name: catalog.name,
         description: catalog.description,
         price: catalog.price,
         image_url_1: catalog.imageUrl[0],
         image_url_2: catalog.imageUrl[1],
         count: catalog.count,
-    });
+    }
+    if(data.image_url_1 == ""){
+        delete data.image_url_1;
+    }
+
+    if(data.image_url_2 == ""){
+        delete data.image_url_2;
+    }
+    return knex('sock').where('sock_id',id).update(data);
 }
 
 exports.deleteCatalog = async(id) => {
