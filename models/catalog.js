@@ -101,13 +101,14 @@ exports.deleteTag = async(id)=>{
 
 exports.addTagCatalog = async(tagId,catalogId)=>{
     await knex('sock_tag').where('sock_id',catalogId).del();
-    return await knex('sock_tag').insert(tagId.map(e => {
-        console.log(e + " " + catalogId)
-        return {
+    let data = [];
+    for(let i = 0; i< tagId.length; i++){
+        data.push({
             sock_id: catalogId,
-            tag_id: e
-        }
-    }))
+            tag_id: parseInt(tagId[i], 10)
+        });
+    }
+    return knex('sock_tag').insert(data);
 }
 
 exports.deleteTagCatalog = async(tagId,catalogId)=>{
