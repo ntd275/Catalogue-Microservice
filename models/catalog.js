@@ -102,6 +102,7 @@ exports.deleteTag = async(id)=>{
 exports.addTagCatalog = async(tagId,catalogId)=>{
     await knex('sock_tag').where('sock_id',catalogId).del();
     return await knex('sock_tag').insert(tagId.map(e => {
+        console.log(e + " " + catalogId)
         return {
             sock_id: catalogId,
             tag_id: e
