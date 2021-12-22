@@ -104,7 +104,7 @@ exports.addTagCatalog = async(tagId,catalogId)=>{
     return Promise.all(
         tagId.map(e => {
             knex('sock_tag').insert({
-                tag_id: e,
+                tag_id: parseInt(e, 10),
                 sock_id: catalogId,
             })
         })
