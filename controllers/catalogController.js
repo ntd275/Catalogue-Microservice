@@ -1,23 +1,28 @@
 const Catalog = require('../models/catalog')
 const uuid = require('uuid');
 exports.getCatalog = async function (req, res) {
-    try{
+    try {
         let page = parseInt(req.query.page, 10) || 1
         let perpage = parseInt(req.query.size) || 1000
-        let tags = req.query.tags? req.query.tags.split(',') : []
-        let result = await Catalog.getCatalog(page,perpage,tags);
-        res.json(await Promise.all(result.data.map(async(e)=>{
+        let tags;
+        if (req.query.tags == "true" || req.query.tags == true) {
+            tags = [];
+        } else {
+            tags = req.query.tags ? req.query.tags.split(',') : []
+        }
+        let result = await Catalog.getCatalog(page, perpage, tags);
+        res.json(await Promise.all(result.data.map(async (e) => {
             return {
                 id: e.sock_id,
                 name: e.name,
                 description: e.description,
-                imageUrl: [e.image_url_1,e.image_url_2],
+                imageUrl: [e.image_url_1, e.image_url_2],
                 price: e.price,
                 count: e.count,
                 tag: (await Catalog.getTagOfCatalog(e.sock_id)).map(t => t.name)
             }
         })));
-    } catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
@@ -27,13 +32,18 @@ exports.getCatalog = async function (req, res) {
 }
 
 exports.getCatalogSize = async function (req, res) {
-    try{
-        let tags = req.query.tags?req.query.tags.split(',') : []
+    try {
+        let tags;
+        if (req.query.tags == "true" || req.query.tags == true) {
+            tags = [];
+        } else {
+            tags = req.query.tags ? req.query.tags.split(',') : []
+        }
         let result = await Catalog.getCatalogSize(tags);
         res.json({
-            size: result.length?result[0]['count(*)']:0
+            size: result.length ? result[0]['count(*)'] : 0
         });
-    } catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
@@ -43,7 +53,7 @@ exports.getCatalogSize = async function (req, res) {
 }
 
 exports.getCatalogById = async function (req, res) {
-    try{
+    try {
         let id = req.params.id;
         let e = await Catalog.getCatalogById(id);
         let tags = await Catalog.getTagOfCatalog(id);
@@ -51,12 +61,12 @@ exports.getCatalogById = async function (req, res) {
             id: e.sock_id,
             name: e.name,
             description: e.description,
-            imageUrl: [e.image_url_1,e.image_url_2],
+            imageUrl: [e.image_url_1, e.image_url_2],
             price: e.price,
             count: e.count,
             tag: tags.map(t => t.name)
         });
-    } catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
@@ -66,13 +76,13 @@ exports.getCatalogById = async function (req, res) {
 }
 
 exports.getAllTag = async function (req, res) {
-    try{
+    try {
         let result = await Catalog.getAllTag();
         res.json({
-            tags: result.map(e=>e.name),
+            tags: result.map(e => e.name),
             err: null,
         });
-    } catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
@@ -82,24 +92,24 @@ exports.getAllTag = async function (req, res) {
 }
 
 exports.createCatalog = async function (req, res) {
-    try{
+    try {
         req.body.id = uuid.v4();
 
-        if(req.body.images){
+        if (req.body.images) {
             let fileName1 = uuid.v4() + '.jpg';
-            let data1 = new Buffer(req.body.images[0],'base64');
+            let data1 = new Buffer(req.body.images[0], 'base64');
             let fileName2 = uuid.v4() + '.jpg';
-            let data2 = new Buffer(req.body.images[1],'base64');
-            fs.writeFileSync("./public/"+fileName1,data1);
-            fs.writeFileSync("./public/"+fileName2,data2);
-            req.body.imageUrl = ['/catalogue/images/' + fileName1,'/catalogue/images/' + fileName2]
+            let data2 = new Buffer(req.body.images[1], 'base64');
+            fs.writeFileSync("./public/" + fileName1, data1);
+            fs.writeFileSync("./public/" + fileName2, data2);
+            req.body.imageUrl = ['/catalogue/images/' + fileName1, '/catalogue/images/' + fileName2]
         }
         let result = await Catalog.createCatalog(req.body)
         res.json({
             success: true,
             id: req.body.id
         });
-    } catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
@@ -109,22 +119,30 @@ exports.createCatalog = async function (req, res) {
 }
 
 exports.editCatalog = async function (req, res) {
-    try{
-        if(req.body.image){
-            let fileName1 = uuid.v4() + '.jpg';
-            let data1 = new Buffer(req.body.images[0],'base64');
-            let fileName2 = uuid.v4() + '.jpg';
-            let data2 = new Buffer(req.body.images[1],'base64');
-            fs.writeFileSync("./public/"+fileName1,data1);
-            fs.writeFileSync("./public/"+fileName2,data2);
-            req.body.imageUrl = ['/catalogue/images/' + fileName1,'/catalogue/images/' + fileName2]
+    try {
+        if (req.body.images) {
+            let fileName1 = '', fileName2 = '';
+
+            if (req.body.images[0] !== "") {
+                fileName1 = uuid.v4() + '.jpg';
+                let data1 = new Buffer(req.body.images[0], 'base64');
+                fs.writeFileSync("./public/" + fileName1, data1);
+            }
+            if (req.body.images[1] !== "") {
+                fileName2 = uuid.v4() + '.jpg';
+                let data2 = new Buffer(req.body.images[1], 'base64');
+                fs.writeFileSync("./public/" + fileName2, data2);
+            }
+
+            req.body.imageUrl = [fileName1 !== '' ? '/catalogue/images/' + fileName1 : fileName1,
+                                 fileName2 !== '' ? '/catalogue/images/' + fileName2 : fileName2]
         }
-        let result = await Catalog.editCatalog(req.body,req.params.id)
+        let result = await Catalog.editCatalog(req.body, req.params.id)
         res.json({
             success: true,
             result
         });
-    } catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
@@ -134,13 +152,13 @@ exports.editCatalog = async function (req, res) {
 }
 
 exports.deleteCatalog = async function (req, res) {
-    try{
+    try {
         let result = await Catalog.deleteCatalog(req.params.id)
         res.json({
             success: true,
             result
         });
-    } catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
@@ -149,11 +167,11 @@ exports.deleteCatalog = async function (req, res) {
     }
 }
 
-exports.getAllTagDetail =  async function (req, res) {
-    try{
+exports.getAllTagDetail = async function (req, res) {
+    try {
         let result = await Catalog.getAllTag();
         res.json(result);
-    } catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
@@ -163,13 +181,13 @@ exports.getAllTagDetail =  async function (req, res) {
 }
 
 exports.createTag = async function (req, res) {
-    try{
+    try {
         let result = await Catalog.createTag(req.body)
         res.json({
             success: true,
             result
         });
-    } catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
@@ -179,13 +197,13 @@ exports.createTag = async function (req, res) {
 }
 
 exports.editTag = async function (req, res) {
-    try{
-        let result = await Catalog.editTag(req.body,req.params.id)
+    try {
+        let result = await Catalog.editTag(req.body, req.params.id)
         res.json({
             success: true,
             result
         });
-    } catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
@@ -195,13 +213,13 @@ exports.editTag = async function (req, res) {
 }
 
 exports.deleteTag = async function (req, res) {
-    try{
+    try {
         let result = await Catalog.deleteTag(req.params.id)
         res.json({
             success: true,
             result
         });
-    } catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
@@ -211,13 +229,13 @@ exports.deleteTag = async function (req, res) {
 }
 
 exports.createTagCatalog = async function (req, res) {
-    try{
-        let result = await Catalog.addTagCatalog(req.body.tagId,req.body.catalogId);
+    try {
+        let result = await Catalog.addTagCatalog(req.body.tagId, req.body.catalogId);
         res.json({
             success: true,
             result
         });
-    } catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
@@ -227,13 +245,13 @@ exports.createTagCatalog = async function (req, res) {
 }
 
 exports.deleteTagCatalog = async function (req, res) {
-    try{
-        let result = await Catalog.deleteTagCatalog(req.body.tagId,req.body.catalogId)
+    try {
+        let result = await Catalog.deleteTagCatalog(req.body.tagId, req.body.catalogId)
         res.json({
             success: true,
             result
         });
-    } catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
@@ -245,15 +263,15 @@ exports.deleteTagCatalog = async function (req, res) {
 const fs = require('fs');
 
 exports.uploadImage = async function (req, res) {
-    try{
+    try {
         let fileName = uuid.v4() + '.jpg';
-        let data = new Buffer(req.body.data,'base64');
-        fs.writeFileSync("./public/"+fileName,data);
+        let data = new Buffer(req.body.data, 'base64');
+        fs.writeFileSync("./public/" + fileName, data);
         res.json({
             success: true,
             fileName,
         });
-    } catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
