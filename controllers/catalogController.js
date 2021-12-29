@@ -43,7 +43,7 @@ exports.getCatalogSize = async function (req, res) {
         let result = await Catalog.getCatalogSize(tags);
         console.log(result);
         res.json({
-            size: result.length ? result[0]['count(*)'] : 0
+            size: result.length ? result.length : 0
         });
     } catch (err) {
         console.log(err)

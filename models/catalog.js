@@ -27,7 +27,7 @@ exports.getCatalogSize = async(tags)=>{
     .join("tag","tag.tag_id","sock_tag.tag_id")
     .whereIn("tag.name",tags)
     .groupBy('sock.sock_id')
-    .count();
+    .select('sock.sock_id')
 }
 
 exports.getCatalogById = (id) => {
