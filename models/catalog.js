@@ -19,7 +19,7 @@ exports.getCatalog = async(page,size,tags) => {
 exports.getCatalogSize = async(tags)=>{
     if(tags.length == 0){
         return knex('sock')
-        .count();
+        .select('sock_id')
     }
 
     return knex('sock')
