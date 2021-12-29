@@ -32,6 +32,7 @@ exports.getCatalog = async function (req, res) {
 }
 
 exports.getCatalogSize = async function (req, res) {
+    console.log(req.query.tags)
     try {
         let tags;
         if (req.query.tags == "true" || req.query.tags == true) {
@@ -40,6 +41,7 @@ exports.getCatalogSize = async function (req, res) {
             tags = req.query.tags ? req.query.tags.split(',') : []
         }
         let result = await Catalog.getCatalogSize(tags);
+        console.log(result);
         res.json({
             size: result.length ? result[0]['count(*)'] : 0
         });
